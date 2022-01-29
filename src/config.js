@@ -11,6 +11,11 @@ const DEBUG = process.env.DEBUG ? parseInt(process.env.DEBUG) : 0;
 if (Number.isNaN(DEBUG))
   throw new Error("Environmnet variable, DEBUG, must be an integer.");
 
+if (DEBUG && !SLACK_DEBUG_CHANNEL)
+  throw new Error(
+    "DEBUG is set, but SLACK_DEBUG_CHANNEL is not. This is required for DEBUG."
+  );
+
 export {
   SLACK_SIGNING_SECRET,
   SLACK_BOT_TOKEN,

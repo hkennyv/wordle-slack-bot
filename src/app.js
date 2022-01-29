@@ -36,7 +36,7 @@ const app = new App({
   socketMode: true,
 });
 
-// get all messages from the last 24 hours
+// get all messages from yesterday
 const results = await app.client.conversations.history({
   channel: SLACK_WORDLE_CHANNEL,
   oldest: yesterdayStart,
