@@ -18,4 +18,10 @@ jobs:
       - name: Install dependencies
         run: npm install
       - name: Run wordle hook
+        env:
+          SLACK_SIGNING_SECRET: ${{ secrets.SLACK_SIGNING_SECRET }}
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          SLACK_APP_TOKEN: ${{ secrets.SLACK_APP_TOKEN }}
+          SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
+          DEBUG: ${{ secrets.DEBUG }}
         run: npm start
