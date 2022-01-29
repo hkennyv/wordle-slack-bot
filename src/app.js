@@ -1,5 +1,12 @@
-import "dotenv/config";
 import bolt from "@slack/bolt";
+import {
+  SLACK_SIGNING_SECRET,
+  SLACK_BOT_TOKEN,
+  SLACK_APP_TOKEN,
+  SLACK_WORDLE_CHANNEL,
+  SLACK_DEBUG_CHANNEL,
+  DEBUG,
+} from "./config.js";
 
 import { subHours, addHours, differenceInDays } from "date-fns";
 
@@ -23,19 +30,15 @@ const todaysNumber = differenceInDays(now, DAY_ONE);
 const yesterdaysNumber = todaysNumber - 1;
 
 const app = new App({
-  token: process.env.SLACK_BOT_TOKEN,
-  signingSecret: process.env.SLACK_SIGNING_SECRET,
-  appToken: process.env.SLACK_APP_TOKEN,
+  token: SLACK_BOT_TOKEN,
+  signingSecret: SLACK_SIGNING_SECRET,
+  appToken: SLACK_APP_TOKEN,
   socketMode: true,
-
-  // Socket Mode doesn't listen on a port, but in case you want your app to respond to OAuth,
-  // you still need to listen on some port!
-  port: process.env.PORT || 3000,
 });
 
 // get all messages from the last 24 hours
 const results = await app.client.conversations.history({
-  channel: process.env.SLACK_WORDLE_CHANNEL,
+  channel: SLACK_WORDLE_CHANNEL,
   oldest: yesterdayStart,
   latest: yesterdayEnd,
 });
@@ -62,33 +65,41 @@ for (let i = 0; i < results.messages.length; i++) {
   if (day == yesterdaysNumber) submissions.push(submission);
 }
 
-const best_score = Math.min(
+const bestScore = Math.min(
   ...submissions.map((submission) => submission.score)
 );
 
 const winners = submissions.filter(
-  (submission) => submission.score === best_score
+  (submission) => submission.score === bestScore
 );
 
 const greetingMessage = `*Wordle ${todaysNumber} is here, happy wordle-ing!* 📕\nhttps://www.powerlanguage.co.uk/wordle/`;
 
-const winnersMessage =
-  winners.length > 1
-    ? `Also, great job to ${winners
-        .map((winner) => winner.user)
-        .join(
-          ", "
-        )} on Wordle ${yesterdaysNumber}!\n\nWinning boards:${winners.map(
-        (winner) => `\n\n${winner.user}\n${winner.grid}`
-      )}`
-    : `Also, great job to ${winners[0].user} on Wordle ${yesterdaysNumber}.\n\nWinning board:\n${winners[0].grid}`;
+let message = "";
+
+if (winners.length === 0) {
+  message = `Oh no! There are no submissions for Wordle ${yesterdaysNumber}, I guess everyone is a winner! :smile:`;
+} else if (winners.length === 1) {
+  const { user, grid } = winners[0];
+
+  message =
+    `You all made *${submissions.length}* submission(s) for Wordle ${yesterdaysNumber}.\n` +
+    `Great job to ${user} for getting the best score!\n\nWinning board:\n\n${user}\n${grid}`;
+} else {
+  const users = winners.map((winner) => winner.user).join(", ");
+  const boards = winners.map((winner) => `\n\n${winner.user}\n${winner.grid}`);
+
+  message =
+    `You all made *${submissions.length}* submission(s) for Wordle ${yesterdaysNumber}\n` +
+    `Great job to ${users} for getting the best score!\n\nWinning boards:${boards}`;
+}
 
 await app.client.chat.postMessage({
-  channel: process.env.SLACK_WORDLE_CHANNEL,
+  channel: DEBUG ? SLACK_DEBUG_CHANNEL : SLACK_WORDLE_CHANNEL,
   text: greetingMessage,
 });
 
 await app.client.chat.postMessage({
-  channel: process.env.SLACK_WORDLE_CHANNEL,
-  text: winnersMessage,
+  channel: DEBUG ? SLACK_DEBUG_CHANNEL : SLACK_WORDLE_CHANNEL,
+  text: message,
 });
