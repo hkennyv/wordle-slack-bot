@@ -1,6 +1,7 @@
 name: wordle-hook
 
 on:
+  workflow_dispatch:
   schedule:
     # Run @ 9:00 AM PST (17:00 UTC) everyday
     - cron: "0 17 * * *"
