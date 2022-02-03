@@ -26,4 +26,4 @@ jobs:
           SLACK_WORDLE_CHANNEL: ${{ secrets.SLACK_WORDLE_CHANNEL }}
           SLACK_DEBUG_CHANNEL: ${{ secrets.SLACK_DEBUG_CHANNEL }}
           DEBUG: ${{ secrets.DEBUG }}
-        run: npm start
+        run: TZ="US/Pacific" npm start
