@@ -47,20 +47,30 @@ const submissions = [];
 
 for (let i = 0; i < results.messages.length; i++) {
   const message = results.messages[i];
-
-  const match = message.text.match(/^Wordle (\d{3}) (\d)\/\d.*/);
+  const match = message.text.match(/^Wordle (\d{3}) (.)\/\d.*/);
 
   if (!match) continue;
-
+  
   const day = parseInt(match[1]);
-  const score = parseInt(match[2]);
+  let score = parseInt(match[2]);
+  let failed = false;
+  let grid_height = score;
+
+  // Consider games where the player failed the wordle (e.g. "Wordle 123 X/6")
+  if (isNaN(score)){ 
+    grid_height = 6;
+    failed = true;
+    score = grid_height + 1
+  }
+  
   const user = `<@${message.user}>`;
   const grid = message.text
     .split("\n")
-    .slice(2, 2 + score)
+    .slice(2, 2 + grid_height)
     .join("\n");
 
-  const submission = { day, user, score, grid };
+  const submission = { day, user, score, grid, failed };
+
 
   if (day == yesterdaysNumber) submissions.push(submission);
 }
