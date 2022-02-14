@@ -22,8 +22,11 @@ yesterday = new Date(
   yesterday.getMonth(),
   yesterday.getDate()
 );
+
+// Change End time so that we could make submissions today as if it were yesterday (In DEBUG mode)
+let debug_offset = DEBUG ? 24 : 0;
 const yesterdayStart = yesterday.getTime() / 1000;
-const yesterdayEnd = addHours(yesterday, 24).getTime() / 1000;
+const yesterdayEnd = addHours(yesterday, 24 + debug_offset).getTime() / 1000;
 
 // since we plan on running this script during the next day, subtract one
 const todaysNumber = differenceInDays(now, DAY_ONE);
@@ -80,15 +83,21 @@ const bestScore = Math.min(
 );
 
 const winners = submissions.filter(
-  (submission) => submission.score === bestScore
+  (submission) => submission.score === bestScore && !submission.failed
 );
 
 const greetingMessage = `*Wordle ${todaysNumber} is here, happy wordle-ing!* 📕\nhttps://www.powerlanguage.co.uk/wordle/`;
 
 let message = "";
 
-if (winners.length === 0) {
+if (submissions.length === 0) {
   message = `Oh no! There are no submissions for Wordle ${yesterdaysNumber}, I guess everyone is a winner! :smile:`;
+} else if (winners.length === 0) {
+  const users = submissions.map((submission) => submission.user).join(", ");
+
+  message =
+    `You all made *${submissions.length}* submission(s) for Wordle ${yesterdaysNumber}.\n` +
+    `Unfortunately, those who played today didn't successfully guess the wordle. Great job to ${users} for trying though!`;
 } else if (winners.length === 1) {
   const { user, grid } = winners[0];
 
