@@ -22,8 +22,11 @@ yesterday = new Date(
   yesterday.getMonth(),
   yesterday.getDate()
 );
+
+// Change End time so that we could make submissions today as if it were yesterday (In DEBUG mode)
+let debug_offset = DEBUG ? 24 : 0;
 const yesterdayStart = yesterday.getTime() / 1000;
-const yesterdayEnd = addHours(yesterday, 24).getTime() / 1000;
+const yesterdayEnd = addHours(yesterday, 24 + debug_offset).getTime() / 1000;
 
 // since we plan on running this script during the next day, subtract one
 const todaysNumber = differenceInDays(now, DAY_ONE);
@@ -47,20 +50,29 @@ const submissions = [];
 
 for (let i = 0; i < results.messages.length; i++) {
   const message = results.messages[i];
-
-  const match = message.text.match(/^Wordle (\d{3}) (\d)\/\d.*/);
+  const match = message.text.match(/^Wordle (\d{3}) (.)\/\d.*/);
 
   if (!match) continue;
 
   const day = parseInt(match[1]);
-  const score = parseInt(match[2]);
+  let score = parseInt(match[2]);
+  let failed = false;
+  let grid_height = score;
+
+  // Consider games where the player failed the wordle (e.g. "Wordle 123 X/6")
+  if (isNaN(score)) {
+    grid_height = 6;
+    failed = true;
+    score = grid_height + 1;
+  }
+
   const user = `<@${message.user}>`;
   const grid = message.text
     .split("\n")
-    .slice(2, 2 + score)
+    .slice(2, 2 + grid_height)
     .join("\n");
 
-  const submission = { day, user, score, grid };
+  const submission = { day, user, score, grid, failed };
 
   if (day == yesterdaysNumber) submissions.push(submission);
 }
@@ -70,15 +82,21 @@ const bestScore = Math.min(
 );
 
 const winners = submissions.filter(
-  (submission) => submission.score === bestScore
+  (submission) => submission.score === bestScore && !submission.failed
 );
 
 const greetingMessage = `*Wordle ${todaysNumber} is here, happy wordle-ing!* 📕\nhttps://www.powerlanguage.co.uk/wordle/`;
 
 let message = "";
 
-if (winners.length === 0) {
+if (submissions.length === 0) {
   message = `Oh no! There are no submissions for Wordle ${yesterdaysNumber}, I guess everyone is a winner! :smile:`;
+} else if (winners.length === 0) {
+  const users = submissions.map((submission) => submission.user).join(", ");
+
+  message =
+    `You all made *${submissions.length}* submission(s) for Wordle ${yesterdaysNumber}.\n` +
+    `Unfortunately, those who played today didn't successfully guess the wordle. Great job to ${users} for trying though!`;
 } else if (winners.length === 1) {
   const { user, grid } = winners[0];
 
