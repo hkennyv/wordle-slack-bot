@@ -1,7 +1,9 @@
 # wordle-slack-bot
 
 This script is a Slack webhook script for the popular word game,
-[Wordle](https://www.powerlanguage.co.uk/wordle/).
+[Wordle](https://www.nytimes.com/games/wordle/index.html).
+
+Also formerly known as <https://www.powerlanguage.co.uk/wordle/>.
 
 When run, it will:
 
