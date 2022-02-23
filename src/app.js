@@ -12,6 +12,8 @@ import { subHours, addHours, differenceInDays } from "date-fns";
 
 const { App } = bolt;
 
+const WORDLE_URL = "https://www.nytimes.com/games/wordle/index.html"
+
 // Wordle day 1 started on 2021-06-19 @ 0:00 PST
 const DAY_ONE = new Date(Date.UTC(2021, 5, 19, 7));
 
@@ -85,7 +87,7 @@ const winners = submissions.filter(
   (submission) => submission.score === bestScore && !submission.failed
 );
 
-const greetingMessage = `*Wordle ${todaysNumber} is here, happy wordle-ing!* 📕\nhttps://www.powerlanguage.co.uk/wordle/`;
+const greetingMessage = `*Wordle ${todaysNumber} is here, happy wordle-ing!* 📕\n${WORDLE_URL}`;
 
 let message = "";
 
